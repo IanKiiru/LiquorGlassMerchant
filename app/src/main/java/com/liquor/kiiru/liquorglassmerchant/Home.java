@@ -2,6 +2,7 @@ package com.liquor.kiiru.liquorglassmerchant;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.Manifest;
 import android.os.Bundle;
@@ -20,8 +21,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -233,6 +236,41 @@ public class Home extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home, menu);
+        MenuItem itemSwitch = menu.findItem(R.id.my_switch);
+        itemSwitch.setActionView(R.layout.user_switch);
+        final Switch userSwitch = (Switch) menu.findItem(R.id.my_switch).getActionView().findViewById(R.id.online_switch);
+        userSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    userSwitch.setText("Online  ");
+                    String userId = Common.currentUser.getPhone();
+                    DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
+                    DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
+                    GeoFire geoFireAvailable = new GeoFire(refAvailable);
+                    GeoFire geoFireWorking = new GeoFire(refWorking);
+                    geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+
+                    switch (customerId){
+                        case "":
+                            geoFireWorking.removeLocation(userId);
+                            geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                            break;
+
+                        default:
+                            geoFireAvailable.removeLocation(userId);
+                            geoFireWorking.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                            break;
+                    }
+
+
+                }
+                else if (isChecked == false){
+                    userSwitch.setText("Offline  ");
+                    disconnectMerchant();
+                }
+            }
+        });
         return true;
     }
 
@@ -320,16 +358,7 @@ public class Home extends AppCompatActivity
 
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        String userId = Common.currentUser.getPhone();
-        DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
-        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
-        GeoFire geoFireAvailable = new GeoFire(refAvailable);
-        GeoFire geoFireWorking = new GeoFire(refWorking);
-        geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-    }
+
 
     private void disconnectMerchant(){
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
@@ -358,32 +387,7 @@ public class Home extends AppCompatActivity
         mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location"));
         CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, 15);
         mMap.animateCamera(update);
-
-        String userId = Common.currentUser.getPhone();
-        DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
-        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
-        GeoFire geoFireAvailable = new GeoFire(refAvailable);
-        GeoFire geoFireWorking = new GeoFire(refWorking);
-        geoFireAvailable.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
-
-        switch (customerId){
-            case "":
-                geoFireWorking.removeLocation(userId);
-                geoFireAvailable.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
-                break;
-
-            default:
-                geoFireAvailable.removeLocation(userId);
-                geoFireWorking.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()));
-                break;
-        }
-
-
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        disconnectMerchant();
-    }
+
 }
