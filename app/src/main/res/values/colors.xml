@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#da0311</color>
+    <color name="colorPrimaryDark">#450103</color>
+    <color name="colorAccent">#f2212f</color>
+
+    <color name="btn_register">#f2212f</color>
+    <color name="btn_login">#37474F</color>
+
+    <color name="overlayBackground">#7f333639</color>
+    <color name="hint_editTextColor">#424242</color>
+    <color name="overlayActionBar">#0e0d0e</color>
+</resources>

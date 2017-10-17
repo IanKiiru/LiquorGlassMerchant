@@ -1,0 +1,143 @@
+{
+  "project_info": {
+    "project_number": "123651917896",
+    "firebase_url": "https://liquorglass-4ed91.firebaseio.com",
+    "project_id": "liquorglass-4ed91",
+    "storage_bucket": "liquorglass-4ed91.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123651917896:android:e5b97c4634f656c0",
+        "android_client_info": {
+          "package_name": "com.example.kiiru.liquorglass"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123651917896-pgo2kctrl9gg7t7ns7vm66tjctm69k78.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kiiru.liquorglass",
+            "certificate_hash": "64b37cec5a7e5b70127b51d503508b8b14338945"
+          }
+        },
+        {
+          "client_id": "123651917896-e99hdtkpdq6mvk4rj55cls3igd885ufg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCAfa1LkVUg4zxN2MBwZjjOaJiwc3HMbE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123651917896-e99hdtkpdq6mvk4rj55cls3igd885ufg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123651917896:android:bba07219ff6a6d60",
+        "android_client_info": {
+          "package_name": "com.example.kiiru.liquorglassmerchant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123651917896-vh85a3ufukcnurb1v8qgq1nnm8alddrd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kiiru.liquorglassmerchant",
+            "certificate_hash": "64b37cec5a7e5b70127b51d503508b8b14338945"
+          }
+        },
+        {
+          "client_id": "123651917896-e99hdtkpdq6mvk4rj55cls3igd885ufg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCAfa1LkVUg4zxN2MBwZjjOaJiwc3HMbE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123651917896-e99hdtkpdq6mvk4rj55cls3igd885ufg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123651917896:android:8fe5306f67a5711b",
+        "android_client_info": {
+          "package_name": "com.liquor.kiiru.liquorglassmerchant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123651917896-704evmtjavfkh895vvr4l7qttic07a4p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.liquor.kiiru.liquorglassmerchant",
+            "certificate_hash": "64b37cec5a7e5b70127b51d503508b8b14338945"
+          }
+        },
+        {
+          "client_id": "123651917896-e99hdtkpdq6mvk4rj55cls3igd885ufg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCAfa1LkVUg4zxN2MBwZjjOaJiwc3HMbE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "123651917896-e99hdtkpdq6mvk4rj55cls3igd885ufg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

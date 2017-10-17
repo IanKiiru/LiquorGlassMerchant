@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">LiquorGlass Merchant</string>
+    <string name="btn_register">Sign Up</string>
+    <string name="btn_login">Sign In</string>
+    <string name="hint_phone">Phone Number</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_name">Full Name</string>
+    <string name="title_activity_home">Home</string>
+    <string name="txt_slogan">Bringing the party closer to you and making sure that you never run dry</string>
+
+</resources>
