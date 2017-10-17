@@ -8,9 +8,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_liquorcoltour"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_liquorcoltour"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
@@ -25,7 +25,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAbE9I2W522tsesXlQa2QOimMrVGZpB92I" />
 
-        <activity android:name=".MerchantLoginActivity"></activity>
+        <activity android:name=".MerchantLoginActivity" />
+        <activity
+            android:name=".Home"
+            android:label="@string/title_activity_home"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

@@ -100,9 +100,9 @@ public class MerchantLoginActivity extends AppCompatActivity {
 
                         if (user.getPassword().equals(localPassword)) {
                             Toast.makeText(MerchantLoginActivity.this, "Sign in successful", Toast.LENGTH_SHORT).show();
-                            /*Intent home_intent = new Intent(MerchantLoginActivity.this, Home.class);
+                            Intent home_intent = new Intent(MerchantLoginActivity.this, Home.class);
                             Common.currentUser = user;
-                            startActivity(home_intent);*/
+                            startActivity(home_intent);
                         } else {
                             Toast.makeText(MerchantLoginActivity.this, "Wrong password", Toast.LENGTH_SHORT).show();
 

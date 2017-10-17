@@ -9,4 +9,9 @@
     <string name="title_activity_home">Home</string>
     <string name="txt_slogan">Bringing the party closer to you and making sure that you never run dry</string>
 
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
 </resources>
