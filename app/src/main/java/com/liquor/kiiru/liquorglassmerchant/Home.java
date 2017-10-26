@@ -12,6 +12,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.SwitchCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -40,6 +41,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -154,7 +156,7 @@ public class Home extends AppCompatActivity
         txtFullName = (TextView) headerLayout.findViewById(R.id.textFullName);
         txtFullName.setText(Common.currentUser.getfName());
 
-        getAssignedCustomer();
+
     }
 
     private void getAssignedCustomer(){
@@ -172,8 +174,8 @@ public class Home extends AppCompatActivity
                     if (deliveryLocationMarker != null) {
                         deliveryLocationMarker.remove();
                     }
-                    if (assignedCustomerPickupLocationRefListener != null){
-                        assignedCustomerPickupLocationRef.removeEventListener(assignedCustomerPickupLocationRefListener);
+                    if (assignedCustomerDeliveryLocationRefListener != null){
+                        assignedCustomerDeliveryLocationRef.removeEventListener(assignedCustomerDeliveryLocationRefListener);
                     }
                 }
 
@@ -188,12 +190,12 @@ public class Home extends AppCompatActivity
 
     }
     Marker deliveryLocationMarker;
-    private DatabaseReference assignedCustomerPickupLocationRef;
-    private ValueEventListener assignedCustomerPickupLocationRefListener;
+    private DatabaseReference assignedCustomerDeliveryLocationRef;
+    private ValueEventListener assignedCustomerDeliveryLocationRefListener;
 
     private void getAssignedCustomerPickupLocation() {
-        assignedCustomerPickupLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("l");
-        assignedCustomerPickupLocationRefListener = assignedCustomerPickupLocationRef.addValueEventListener(new ValueEventListener() {
+        assignedCustomerDeliveryLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("l");
+        assignedCustomerDeliveryLocationRefListener = assignedCustomerDeliveryLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && !customerId.equals("")) {
@@ -207,7 +209,7 @@ public class Home extends AppCompatActivity
                         locationLng = Double.parseDouble(map.get(1).toString());
                     }
                     LatLng merchantLatLng = new LatLng(locationLat,locationLng);
-                    deliveryLocationMarker = mMap.addMarker(new MarkerOptions().position(merchantLatLng).title("Delivery location"));
+                    deliveryLocationMarker = mMap.addMarker(new MarkerOptions().position(merchantLatLng).title("Delivery location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_customer)));
 
                 }
 
@@ -238,20 +240,20 @@ public class Home extends AppCompatActivity
         getMenuInflater().inflate(R.menu.home, menu);
         MenuItem itemSwitch = menu.findItem(R.id.my_switch);
         itemSwitch.setActionView(R.layout.user_switch);
-        final Switch userSwitch = (Switch) menu.findItem(R.id.my_switch).getActionView().findViewById(R.id.online_switch);
+        final SwitchCompat userSwitch = (SwitchCompat) menu.findItem(R.id.my_switch).getActionView().findViewById(R.id.online_switch);
         userSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
+                    if(getApplicationContext()!=null){
                     userSwitch.setText("Online  ");
                     String userId = Common.currentUser.getPhone();
                     DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
                     DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
                     GeoFire geoFireAvailable = new GeoFire(refAvailable);
                     GeoFire geoFireWorking = new GeoFire(refWorking);
-                    geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
 
-                    switch (customerId){
+                    switch (customerId) {
                         case "":
                             geoFireWorking.removeLocation(userId);
                             geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
@@ -264,11 +266,11 @@ public class Home extends AppCompatActivity
                     }
 
 
-                }
-                else if (isChecked == false){
+                } else if (isChecked == false) {
                     userSwitch.setText("Offline  ");
                     disconnectMerchant();
                 }
+            }
             }
         });
         return true;
@@ -298,6 +300,8 @@ public class Home extends AppCompatActivity
         if (id == R.id.nav_orders) {
             // Handle the camera action
         } else if (id == R.id.nav_account) {
+            Intent profileIntent = new Intent(Home.this, UserProfile.class);
+            startActivity(profileIntent);
 
         } else if (id == R.id.nav_help) {
 
@@ -329,6 +333,7 @@ public class Home extends AppCompatActivity
         }
         mMap.setMyLocationEnabled(true);
         buildGoogleApiClient();
+        getAssignedCustomer();
 
     }
 
@@ -381,13 +386,14 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        lastLocation = location;
-        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.clear();
-        mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location"));
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, 15);
-        mMap.animateCamera(update);
-    }
+            LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            lastLocation = location;
+            mMap.clear();
+            mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant)));
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, 15);
+            mMap.animateCamera(update);
+        }
+
 
 
 }

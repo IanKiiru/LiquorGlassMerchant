@@ -10,4 +10,10 @@
     <color name="overlayBackground">#7f333639</color>
     <color name="hint_editTextColor">#424242</color>
     <color name="overlayActionBar">#0e0d0e</color>
+
+    <color name="tealOn">#26A69A</color>
+    <color name="profileDetails">#FFD600</color>
+    <color name="tealOff">#9E9E9E</color>
 </resources>
+
+

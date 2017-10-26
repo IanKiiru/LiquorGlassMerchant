@@ -3,7 +3,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
     
-    <Switch
+    <android.support.v7.widget.SwitchCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Offline  "
@@ -12,10 +12,10 @@
         android:textColor="@android:color/black"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="12dp"
         android:thumbTextPadding="14.5dp"
-        android:thumbTint="@color/colorAccent"
         android:padding="6dp"
+        style="@style/SwitchCompatStyle"
         android:id="@+id/online_switch" />
 
 </LinearLayout>
