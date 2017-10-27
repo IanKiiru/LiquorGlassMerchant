@@ -1,5 +1,6 @@
 package com.liquor.kiiru.liquorglassmerchant;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -29,6 +30,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
@@ -53,6 +55,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.liquor.kiiru.liquorglassmerchant.Common.Common;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.liquor.kiiru.liquorglassmerchant.MainActivity.MY_PERMISSIONS_REQUEST_LOCATION;
 
@@ -70,6 +73,7 @@ public class Home extends AppCompatActivity
     private LinearLayout mCustomerInfo;
 
     private ImageView mCustomerProfileImage;
+    Marker userMarker;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -134,15 +138,6 @@ public class Home extends AppCompatActivity
         mCustomerDestination = (TextView) findViewById(R.id.customerDestination);
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -168,6 +163,7 @@ public class Home extends AppCompatActivity
                 if(dataSnapshot.exists()){
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickupLocation();
+                    getAssignedCustomerInfo();
 
                 } else {
                     customerId = "";
@@ -177,6 +173,8 @@ public class Home extends AppCompatActivity
                     if (assignedCustomerDeliveryLocationRefListener != null){
                         assignedCustomerDeliveryLocationRef.removeEventListener(assignedCustomerDeliveryLocationRefListener);
                     }
+
+                    mCustomerInfo.setVisibility(View.GONE);
                 }
 
 
@@ -194,7 +192,7 @@ public class Home extends AppCompatActivity
     private ValueEventListener assignedCustomerDeliveryLocationRefListener;
 
     private void getAssignedCustomerPickupLocation() {
-        assignedCustomerDeliveryLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("l");
+        assignedCustomerDeliveryLocationRef = FirebaseDatabase.getInstance().getReference().child("customerRequest").child(customerId).child("location").child(customerId).child("l");
         assignedCustomerDeliveryLocationRefListener = assignedCustomerDeliveryLocationRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -223,6 +221,38 @@ public class Home extends AppCompatActivity
 
     }
 
+    private void getAssignedCustomerInfo(){
+        final ProgressDialog mProgressDialog = new ProgressDialog(Home.this);
+        mProgressDialog.setTitle("Fetching Customer information...");
+        mProgressDialog.setMessage("Please wait...");
+        mProgressDialog.show();
+        DatabaseReference mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Customers").child(customerId);
+        mCustomerDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
+                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    if(map.get("fName")!=null){
+                        mCustomerName.setText("Name: " +map.get("fName").toString());
+                    }
+                    if(map.get("phone")!=null){
+                        mCustomerPhone.setText("Phone: "+map.get("phone").toString());
+                    }
+                    if(map.get("profileImageUrl")!=null){
+                        Glide.with(getApplication()).load(map.get("profileImageUrl").toString()).into(mCustomerProfileImage);
+                    }
+                    mProgressDialog.dismiss();
+                    mCustomerInfo.setVisibility(View.VISIBLE);
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -245,7 +275,7 @@ public class Home extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    if(getApplicationContext()!=null){
+
                     userSwitch.setText("Online  ");
                     String userId = Common.currentUser.getPhone();
                     DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
@@ -266,11 +296,12 @@ public class Home extends AppCompatActivity
                     }
 
 
-                } else if (isChecked == false) {
+
+            }
+                else if (isChecked == false) {
                     userSwitch.setText("Offline  ");
                     disconnectMerchant();
                 }
-            }
             }
         });
         return true;
@@ -335,6 +366,7 @@ public class Home extends AppCompatActivity
         buildGoogleApiClient();
         getAssignedCustomer();
 
+
     }
 
     protected synchronized void buildGoogleApiClient(){
@@ -376,7 +408,8 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Toast.makeText(this, "Trying to find your location", Toast.LENGTH_LONG).show();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -386,12 +419,14 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-            LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            lastLocation = location;
-            mMap.clear();
-            mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant)));
-            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, 15);
-            mMap.animateCamera(update);
+        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        lastLocation = location;
+        if (userMarker != null) {
+            userMarker.remove();
+        }
+        userMarker = mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant)));
+        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, 15);
+        mMap.animateCamera(update);
         }
 
 
