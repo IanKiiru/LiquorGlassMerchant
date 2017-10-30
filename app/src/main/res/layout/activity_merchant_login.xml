@@ -22,9 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/hint_phone"
-            android:text="0711202000"
-            app:met_textColorHint="@color/hint_editTextColor"
-            app:met_textColor="@color/colorAccent"
+            app:met_textColorHint="@color/colorPrimaryDark"
+            app:met_textColor="@color/colorPrimaryDark"
             android:textSize="34sp"
             android:inputType="phone"
             app:met_baseColor="@android:color/white"
@@ -38,10 +37,9 @@
             android:id="@+id/edt_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:met_textColorHint="@color/hint_editTextColor"
+            app:met_textColorHint="@color/colorPrimaryDark"
             android:hint="@string/hint_password"
-            android:text="anto99"
-            app:met_textColor="@color/colorAccent"
+            app:met_textColor="@color/colorPrimaryDark"
             android:textSize="34sp"
             android:inputType="textPassword"
             app:met_baseColor="@android:color/white"
@@ -50,6 +48,17 @@
             app:met_primaryColor="@android:color/white"
             app:met_singleLineEllipsis="true"
             />
+
+        <com.rey.material.widget.CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/chkBoxRemember"
+            style="@style/Material.Drawable.CheckBox"
+            android:text="Remember Me"
+            android:gravity="center_vertical"
+            app:cbd_strokeColor="@color/colorPrimary"
+            android:textColor="@color/colorPrimaryDark"
+            app:cbd_tickColor="@color/colorAccent" />
 
 
 

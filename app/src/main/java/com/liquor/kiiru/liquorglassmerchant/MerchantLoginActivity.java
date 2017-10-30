@@ -21,11 +21,15 @@ import com.liquor.kiiru.liquorglassmerchant.Common.Common;
 import com.liquor.kiiru.liquorglassmerchant.Model.User;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
+import io.paperdb.Paper;
+
 public class MerchantLoginActivity extends AppCompatActivity {
 
     private MaterialEditText phone_editText, password_editText;
     private Button loginBtn;
     private RelativeLayout loginRelativeLayout;
+    com.rey.material.widget.CheckBox checkBox;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,12 @@ public class MerchantLoginActivity extends AppCompatActivity {
         phone_editText = (MaterialEditText) findViewById(R.id.edt_Phone);
         password_editText = (MaterialEditText) findViewById(R.id.edt_password);
         loginRelativeLayout = (RelativeLayout) findViewById(R.id.loginRelative_layout);
+        checkBox = (com.rey.material.widget.CheckBox) findViewById(R.id.chkBoxRemember);
+
+        // Init Paper
+
+        Paper.init(this);
+
 
         loginRelativeLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,9 +83,16 @@ public class MerchantLoginActivity extends AppCompatActivity {
     final DatabaseReference table_users_merchants = mDatabase.getReference().child("Users").child("Merchants");
 
     public void signIn(View view, String mPhone, String mPassword){
+
+        if (checkBox.isChecked()){
+            Paper.book().write(Common.USER_KEY, phone_editText.getText().toString());
+            Paper.book().write(Common.PWD_KEY, password_editText.getText().toString());
+
+        }
         final ProgressDialog mProgressDialog = new ProgressDialog(MerchantLoginActivity.this);
         mProgressDialog.setMessage("Please wait...");
         mProgressDialog.show();
+
         final String phone = phone_editText.getText().toString();
         final String password = password_editText.getText().toString();
         final String localPhone = mPhone;
