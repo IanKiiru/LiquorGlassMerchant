@@ -59,7 +59,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.liquor.kiiru.liquorglassmerchant.Common.Common;
+import com.liquor.kiiru.liquorglassmerchant.Model.Token;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +78,7 @@ public class Home extends AppCompatActivity
     Location lastLocation, delivery;
     private GoogleMap mMap;
     private TextView txtFullName, mCustomerName, mCustomerPhone, mCustomerDestination;
-    private String customerId = "";
+    public static String customerId = "";
     private Boolean isLoggingOut = false;
     private LinearLayout mCustomerInfo;
 
@@ -161,9 +163,16 @@ public class Home extends AppCompatActivity
         txtFullName = (TextView) headerLayout.findViewById(R.id.textFullName);
         txtFullName.setText(Common.currentUser.getfName());
 
+        updateToken(FirebaseInstanceId.getInstance().getToken());
 
 
+    }
 
+    private void updateToken(String token) {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference tokens = db.getReference("Tokens");
+        Token data = new Token(token,true);
+        tokens.child(Common.currentUser.getPhone()).setValue(data);
     }
 
     private void getAssignedCustomer(){
@@ -277,6 +286,7 @@ public class Home extends AppCompatActivity
     }
 
 
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -352,7 +362,8 @@ public class Home extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_orders) {
-            // Handle the camera action
+            Intent orders = new Intent(Home.this, Orders.class);
+            startActivity(orders);
         } else if (id == R.id.nav_account) {
             Intent profileIntent = new Intent(Home.this, UserProfile.class);
             startActivity(profileIntent);
