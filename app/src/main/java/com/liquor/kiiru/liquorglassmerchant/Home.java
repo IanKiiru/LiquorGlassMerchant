@@ -81,8 +81,9 @@ public class Home extends AppCompatActivity
     public static String customerId = "";
     private Boolean isLoggingOut = false;
     private LinearLayout mCustomerInfo;
-
+    String merchantId = Common.currentUser.getPhone();
     private ImageView mCustomerProfileImage;
+    private String destination;
     Marker userMarker;
 
 
@@ -163,9 +164,9 @@ public class Home extends AppCompatActivity
         txtFullName = (TextView) headerLayout.findViewById(R.id.textFullName);
         txtFullName.setText(Common.currentUser.getfName());
 
+
         updateToken(FirebaseInstanceId.getInstance().getToken());
-
-
+        getAssignedCustomer();
     }
 
     private void updateToken(String token) {
@@ -176,27 +177,20 @@ public class Home extends AppCompatActivity
     }
 
     private void getAssignedCustomer(){
-        String merchantId = Common.currentUser.getPhone();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerOrderId");
+
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest").child("customerOrderId");
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.exists()){
                     customerId = dataSnapshot.getValue().toString();
                     getAssignedCustomerPickupLocation();
+                    getAssignedCustomerDestination();
                     getAssignedCustomerInfo();
 
                 } else {
-                    erasePolylines();
-                    customerId = "";
-                    if (deliveryLocationMarker != null) {
-                        deliveryLocationMarker.remove();
-                    }
-                    if (assignedCustomerDeliveryLocationRefListener != null){
-                        assignedCustomerDeliveryLocationRef.removeEventListener(assignedCustomerDeliveryLocationRefListener);
-                    }
+                    endRide();
 
-                    mCustomerInfo.setVisibility(View.GONE);
                 }
 
 
@@ -209,6 +203,52 @@ public class Home extends AppCompatActivity
         });
 
     }
+
+    private void endRide() {
+        erasePolylines();
+        DatabaseReference merchantRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest");
+        merchantRef.removeValue();
+
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("customerRequest").child(customerId);
+        GeoFire geoFire = new GeoFire(ref);
+        geoFire.removeLocation("location");
+        customerId="";
+
+        if (deliveryLocationMarker != null) {
+            deliveryLocationMarker.remove();
+        }
+        if (assignedCustomerDeliveryLocationRefListener != null){
+            assignedCustomerDeliveryLocationRef.removeEventListener(assignedCustomerDeliveryLocationRefListener);
+        }
+
+        mCustomerInfo.setVisibility(View.GONE);
+    }
+
+    private void getAssignedCustomerDestination() {
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest");
+        assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    if(map.get("destination")!=null){
+                        destination = map.get("destination").toString();
+                        mCustomerDestination.setText("Destination: " + destination);
+                    }
+                    else{
+                        mCustomerDestination.setText("Destination: --");
+                    }
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     Marker deliveryLocationMarker;
     private DatabaseReference assignedCustomerDeliveryLocationRef;
     private ValueEventListener assignedCustomerDeliveryLocationRefListener;
@@ -308,28 +348,9 @@ public class Home extends AppCompatActivity
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    getAssignedCustomer();
+
                     userSwitch.setText("Online  ");
-                    String userId = Common.currentUser.getPhone();
-                    DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
-                    DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
-                    GeoFire geoFireAvailable = new GeoFire(refAvailable);
-                    GeoFire geoFireWorking = new GeoFire(refWorking);
-
-                    switch (customerId) {
-                        case "":
-                            geoFireWorking.removeLocation(userId);
-                            geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-                            break;
-
-                        default:
-                            geoFireAvailable.removeLocation(userId);
-                            geoFireWorking.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-                            break;
-                    }
-
-
-
+                    connectMerchant();
             }
                 else if (isChecked == false) {
                     userSwitch.setText("Offline  ");
@@ -419,6 +440,12 @@ public class Home extends AppCompatActivity
         mLocationRequest.setInterval(5000);
         mLocationRequest.setFastestInterval(5000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+
+
+    }
+
+    private void connectMerchant(){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
@@ -429,8 +456,6 @@ public class Home extends AppCompatActivity
 
 
     }
-
-
 
     private void disconnectMerchant(){
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
@@ -454,8 +479,26 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
         lastLocation = location;
+        String userId = Common.currentUser.getPhone();
+        DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
+        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
+        GeoFire geoFireAvailable = new GeoFire(refAvailable);
+        GeoFire geoFireWorking = new GeoFire(refWorking);
+
+        switch (customerId) {
+            case "":
+                geoFireWorking.removeLocation(userId);
+                geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                break;
+
+            default:
+                geoFireAvailable.removeLocation(userId);
+                geoFireWorking.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
+                break;
+        }
+
+        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
         if (userMarker != null) {
             userMarker.remove();
         }

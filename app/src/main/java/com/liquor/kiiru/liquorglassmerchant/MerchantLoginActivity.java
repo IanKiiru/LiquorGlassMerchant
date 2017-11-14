@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,6 +32,7 @@ public class MerchantLoginActivity extends AppCompatActivity {
     com.rey.material.widget.CheckBox checkBox;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +46,7 @@ public class MerchantLoginActivity extends AppCompatActivity {
         // Init Paper
 
         Paper.init(this);
+
 
 
         loginRelativeLayout.setOnClickListener(new View.OnClickListener() {
@@ -106,6 +109,7 @@ public class MerchantLoginActivity extends AppCompatActivity {
             alertDialog.show();
             mProgressDialog.dismiss();
         }else {
+
             table_users_merchants.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {

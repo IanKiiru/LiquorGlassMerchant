@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
         }
-
+        startService(new Intent(MainActivity.this, onAppKilled.class));
         txtSlogan = (TextView) findViewById(R.id.txtSlogan);
         Typeface face = Typeface.createFromAsset(getAssets(), "fonts/Nabila.ttf");
         txtSlogan.setTypeface(face);
