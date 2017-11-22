@@ -39,6 +39,7 @@ import com.directions.route.RoutingListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -54,6 +55,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -61,13 +63,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.liquor.kiiru.liquorglassmerchant.Common.Common;
+import com.liquor.kiiru.liquorglassmerchant.Model.BottomSheetMerchantFragment;
 import com.liquor.kiiru.liquorglassmerchant.Model.Token;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.liquor.kiiru.liquorglassmerchant.MainActivity.MY_PERMISSIONS_REQUEST_LOCATION;
+import io.paperdb.Paper;
+
+
 
 public class Home extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, RoutingListener {
@@ -75,16 +80,25 @@ public class Home extends AppCompatActivity
     private SupportMapFragment mapFragment;
     private LocationRequest mLocationRequest;
     private DatabaseReference locationRef;
-    Location lastLocation, delivery;
+    Location lastLocation;
     private GoogleMap mMap;
     private TextView txtFullName, mCustomerName, mCustomerPhone, mCustomerDestination;
     public static String customerId = "";
-    private Boolean isLoggingOut = false;
     private LinearLayout mCustomerInfo;
-    String merchantId = Common.currentUser.getPhone();
     private ImageView mCustomerProfileImage;
     private String destination;
     Marker userMarker;
+    private static final int MY_PERMISSION_REQUEST_CODE = 7000;
+    private static final int PLAY_SERVICES_REQUEST_CODE = 7001;
+
+    private static int UPDATE_INTERVAL = 5000;
+    private static int FASTEST_INTERVAL = 3000;
+    private static int DISPLACEMENT = 10;
+    SwitchCompat userSwitch;
+    ImageView imgExpandable;
+    BottomSheetMerchantFragment mBottomSheetMerchantFragment;
+
+    FirebaseAuth mAuth;
 
 
     @Override
@@ -92,34 +106,24 @@ public class Home extends AppCompatActivity
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
+            case MY_PERMISSION_REQUEST_CODE: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // Permission was granted.
-                    mapFragment.getMapAsync(this);
-                    if (ActivityCompat.checkSelfPermission(this,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    if (checkPlayServices())
+                    {
+                        buildGoogleApiClient();
+                        createLocationRequest();
+                        if (userSwitch.isChecked())
+                        connectMerchant();
                     }
-
-                } else {
-
-                    // Permission denied, Disable the functionality that depends on this permission.
-                    Toast.makeText(this, "Permission to access your location denied", Toast.LENGTH_LONG).show();
                 }
-                return;
             }
-
-            // other 'case' lines to check for other permissions this app might request.
-            //You can add here other case statements according to your requirement.
         }
-
-
-
     }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,13 +138,40 @@ public class Home extends AppCompatActivity
         polylines = new ArrayList<>();
         android.support.v4.app.FragmentManager sFm = getSupportFragmentManager();
         sFm.beginTransaction().add(R.id.mapMerchant, mapFragment).commit();
+        mapFragment.getMapAsync(this);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        //Init Paper
 
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
-        } else {
-            mapFragment.getMapAsync(this);
-        }
+        Paper.init(this);
+
+        imgExpandable = (ImageView) findViewById(R.id.imgExpandable);
+        userSwitch = (SwitchCompat) findViewById(R.id.online_switch);
+
+        userSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startLocationUpdates();
+                    connectMerchant();
+                    getAssignedCustomer();
+                    Snackbar.make(mapFragment.getView(), "You are online", Snackbar.LENGTH_SHORT).show();
+
+                }
+                else if (!isChecked){
+                    disconnectMerchant();
+                    userMarker.remove();
+                    Snackbar.make(mapFragment.getView(), "You are offline", Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        });
+        mBottomSheetMerchantFragment = BottomSheetMerchantFragment.newInstance("Assigned Customer Information");
+
+        imgExpandable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBottomSheetMerchantFragment.show(getSupportFragmentManager(), mBottomSheetMerchantFragment.getTag());
+            }
+        });
 
         mCustomerInfo = (LinearLayout) findViewById(R.id.customerInfo);
 
@@ -149,6 +180,9 @@ public class Home extends AppCompatActivity
         mCustomerName = (TextView) findViewById(R.id.customerName);
         mCustomerPhone = (TextView) findViewById(R.id.customerPhone);
         mCustomerDestination = (TextView) findViewById(R.id.customerDestination);
+
+        mAuth = FirebaseAuth.getInstance();
+
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -162,22 +196,24 @@ public class Home extends AppCompatActivity
 
         View headerLayout = navigationView.getHeaderView(0);
         txtFullName = (TextView) headerLayout.findViewById(R.id.textFullName);
-        txtFullName.setText(Common.currentUser.getfName());
+        txtFullName.setText(Common.currentUser.getfName() +" "+ Common.currentUser.getlName());
 
-
+        setUpLocation();
         updateToken(FirebaseInstanceId.getInstance().getToken());
-        getAssignedCustomer();
     }
 
+
+
     private void updateToken(String token) {
+        String merchantId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         DatabaseReference tokens = db.getReference("Tokens");
         Token data = new Token(token,true);
-        tokens.child(Common.currentUser.getPhone()).setValue(data);
+        tokens.child(merchantId).setValue(data);
     }
 
     private void getAssignedCustomer(){
-
+        String merchantId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest").child("customerOrderId");
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -206,7 +242,8 @@ public class Home extends AppCompatActivity
 
     private void endRide() {
         erasePolylines();
-        DatabaseReference merchantRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference merchantRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(userId).child("customerRequest");
         merchantRef.removeValue();
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("customerRequest").child(customerId);
@@ -225,6 +262,7 @@ public class Home extends AppCompatActivity
     }
 
     private void getAssignedCustomerDestination() {
+        String merchantId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest");
         assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -270,7 +308,7 @@ public class Home extends AppCompatActivity
                     }
                     LatLng deliveryLatLng = new LatLng(locationLat,locationLng);
                     deliveryLocationMarker = mMap.addMarker(new MarkerOptions().position(deliveryLatLng).title("Delivery location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_customer)));
-                        getRouteToMarker(deliveryLatLng);
+                       getRouteToMarker(deliveryLatLng);
                 }
 
             }
@@ -288,7 +326,7 @@ public class Home extends AppCompatActivity
                 .travelMode(AbstractRouting.TravelMode.DRIVING)
                 .withListener(this)
                 .alternativeRoutes(false)
-                .waypoints(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), deliveryLatLng)
+                .waypoints(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()), deliveryLatLng)
                 .build();
         routing.execute();
     }
@@ -341,23 +379,6 @@ public class Home extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.home, menu);
-        MenuItem itemSwitch = menu.findItem(R.id.my_switch);
-        itemSwitch.setActionView(R.layout.user_switch);
-        final SwitchCompat userSwitch = (SwitchCompat) menu.findItem(R.id.my_switch).getActionView().findViewById(R.id.online_switch);
-        userSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-
-                    userSwitch.setText("Online  ");
-                    connectMerchant();
-            }
-                else if (isChecked == false) {
-                    userSwitch.setText("Offline  ");
-                    disconnectMerchant();
-                }
-            }
-        });
         return true;
     }
 
@@ -392,8 +413,9 @@ public class Home extends AppCompatActivity
         } else if (id == R.id.nav_help) {
 
         } else if (id == R.id.nav_logout) {
+            Paper.book().destroy();
             disconnectMerchant();
-            Intent signOut_intent = new Intent(Home.this, MerchantLoginActivity.class);
+            Intent signOut_intent = new Intent(Home.this, MainActivity.class);
             signOut_intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(signOut_intent);
 
@@ -411,21 +433,48 @@ public class Home extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
-
-
-        }
-        mMap.setMyLocationEnabled(true);
-        buildGoogleApiClient();
-
-
-
 
     }
 
-    protected synchronized void buildGoogleApiClient(){
+
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (resultCode!=ConnectionResult.SUCCESS)
+        {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode))
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_REQUEST_CODE).show();
+            else {
+                Toast.makeText(this, "This device is not supported", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void setUpLocation() {
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, new String[]
+                            {android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                    android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSION_REQUEST_CODE);
+        } else {
+
+            if (checkPlayServices())
+            {
+                buildGoogleApiClient();
+                createLocationRequest();
+                if (userSwitch.isChecked())
+                    connectMerchant();
+
+            }
+        }
+    }
+
+    private void buildGoogleApiClient(){
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -434,33 +483,100 @@ public class Home extends AppCompatActivity
         mGoogleApiClient.connect();
     }
 
+    private void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
+    }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(5000);
-        mLocationRequest.setFastestInterval(5000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-
+        connectMerchant();
+        startLocationUpdates();
 
     }
 
-    private void connectMerchant(){
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
-
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            return;
         }
-
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-
-
     }
+
+    private void connectMerchant() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (lastLocation != null) {
+            if (userSwitch.isChecked()) {
+                final double latitude = lastLocation.getLatitude();
+                final double longitude = lastLocation.getLongitude();
+
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
+                DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
+                GeoFire geoFireAvailable = new GeoFire(refAvailable);
+                GeoFire geoFireWorking = new GeoFire(refWorking);
+
+                switch (customerId) {
+                    case "":
+                        geoFireWorking.removeLocation(userId);
+                        geoFireAvailable.setLocation(userId, new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+                            @Override
+                            public void onComplete(String key, DatabaseError error) {
+                                if (userMarker != null)
+                                    userMarker.remove();
+                                userMarker = mMap.addMarker(new MarkerOptions()
+                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant))
+                                        .position(new LatLng(latitude, longitude))
+                                        .title("Your Location"));
+
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
+
+                            }
+                        });
+                        break;
+
+                    default:
+                        geoFireAvailable.removeLocation(userId);
+                        geoFireWorking.setLocation(userId, new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+                            @Override
+                            public void onComplete(String key, DatabaseError error) {
+                                if (userMarker != null)
+                                    userMarker.remove();
+                                userMarker = mMap.addMarker(new MarkerOptions()
+                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant))
+                                        .position(new LatLng(latitude, longitude))
+                                        .title("Your Location"));
+
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
+
+                            }
+                        });
+                        break;
+                }
+
+
+            }
+        }
+    }
+
 
     private void disconnectMerchant(){
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            return;
+        }
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        String userId = Common.currentUser.getPhone();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         GeoFire geoFire = new GeoFire(ref);
         geoFire.removeLocation(userId);
@@ -468,7 +584,6 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onConnectionSuspended(int i) {
-        Toast.makeText(this, "Trying to find your location", Toast.LENGTH_LONG).show();
         mGoogleApiClient.connect();
     }
 
@@ -479,32 +594,10 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        lastLocation = location;
-        String userId = Common.currentUser.getPhone();
-        DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
-        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
-        GeoFire geoFireAvailable = new GeoFire(refAvailable);
-        GeoFire geoFireWorking = new GeoFire(refWorking);
-
-        switch (customerId) {
-            case "":
-                geoFireWorking.removeLocation(userId);
-                geoFireAvailable.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-                break;
-
-            default:
-                geoFireAvailable.removeLocation(userId);
-                geoFireWorking.setLocation(userId, new GeoLocation(lastLocation.getLatitude(), lastLocation.getLongitude()));
-                break;
+        if(getApplicationContext()!=null) {
+            lastLocation=location;
+            connectMerchant();
         }
-
-        LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        if (userMarker != null) {
-            userMarker.remove();
-        }
-        userMarker = mMap.addMarker(new MarkerOptions().position(userLocation).title("Your Location").icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant)));
-        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, 15);
-        mMap.animateCamera(update);
         }
 
     private List<Polyline> polylines;

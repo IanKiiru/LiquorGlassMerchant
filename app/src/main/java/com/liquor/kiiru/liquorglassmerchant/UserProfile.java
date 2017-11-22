@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -51,6 +52,7 @@ public class UserProfile extends AppCompatActivity {
 
     private String mProfileImageUrl;
     private Uri resultUri;
+    FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +70,9 @@ public class UserProfile extends AppCompatActivity {
         backButton = (Button) findViewById(R.id.profileBack);
         saveButton = (Button) findViewById(R.id.profileSave);
 
-        userID = Common.currentUser.getPhone();
+        auth = FirebaseAuth.getInstance();
+        userID = auth.getCurrentUser().getUid();
+
         mCustomerDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(userID);
 
         if (Common.isConnectedToInternet(this))
@@ -170,6 +174,7 @@ public class UserProfile extends AppCompatActivity {
         userInfo.put("password", password);
         mCustomerDatabase.updateChildren(userInfo);
 
+
         if(resultUri != null) {
 
             StorageReference filePath = FirebaseStorage.getInstance().getReference().child("profile_images").child(userID);
@@ -189,8 +194,7 @@ public class UserProfile extends AppCompatActivity {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     mProgressDialog.dismiss();
-                    finish();
-                    return;
+                    Toast.makeText(UserProfile.this, "Failed to upload profile image: " +e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             });
             uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -201,7 +205,7 @@ public class UserProfile extends AppCompatActivity {
                     Map newImage = new HashMap();
                     newImage.put("profileImageUrl", downloadUrl.toString());
                     mCustomerDatabase.updateChildren(newImage);
-
+                    Toast.makeText(UserProfile.this, "Upload Successful", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }

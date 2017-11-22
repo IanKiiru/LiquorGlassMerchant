@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#da0311</color>
-    <color name="colorPrimaryDark">#450103</color>
-    <color name="colorAccent">#455A64</color>
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#757575</color>
+    <color name="colorAccent">#450103</color>
 
-    <color name="btn_register">#f2212f</color>
-    <color name="btn_login">#37474F</color>
+    <color name="rippleEffectColor">#D50000</color>
+    <color name="btnSignIn">#1fbad6</color>
 
     <color name="overlayBackground">#7f333639</color>
     <color name="hint_editTextColor">#424242</color>
     <color name="overlayActionBar">#0e0d0e</color>
 
-    <color name="tealOn">#26A69A</color>
+    <color name="tealOn">#448AFF</color>
     <color name="profileDetails">#FFD600</color>
+    <color name="ballPressColor">#448AFF</color>
     <color name="tealOff">#9E9E9E</color>
 </resources>
 

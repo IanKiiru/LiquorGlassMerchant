@@ -143,35 +143,26 @@
         android:weightSum="2"
         android:orientation="horizontal">
 
-        <info.hoang8f.widget.FButton
+        <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:id="@+id/profileSave"
-            android:text="Save"
-            android:layout_weight="1"
-            android:textColor="@color/profileDetails"
-            app:buttonColor="@color/btn_register"
-            app:shadowColor="@color/colorPrimaryDark"
-            app:shadowEnabled="true"
-            app:shadowHeight="3dp"
-            app:cornerRadius="4dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginRight="4dp"
+            android:background="@drawable/btn_sign_in_background"
+            android:textColor="@color/colorAccent"
+            android:text="SAVE"
+            android:layout_marginRight="6dp"
             />
-        <info.hoang8f.widget.FButton
+        <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/profileBack"
-            android:text="Cancel"
             android:layout_weight="1"
-            android:textColor="@color/profileDetails"
-            app:buttonColor="@color/btn_login"
-            app:shadowColor="@color/colorPrimaryDark"
-            app:shadowEnabled="true"
-            app:shadowHeight="3dp"
-            app:cornerRadius="4dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginLeft="4dp"/>
+            android:id="@+id/profileBack"
+            android:background="@drawable/back_btn_background"
+            android:textColor="@color/colorAccent"
+            android:text="CANCEL"
+            android:layout_marginRight="6dp"
+            />
     </LinearLayout>
 
 </LinearLayout>

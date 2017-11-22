@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/rootLayout"
     android:background="@drawable/liquor_glass_background"
     tools:context="com.liquor.kiiru.liquorglassmerchant.MainActivity">
 
@@ -11,40 +12,50 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_centerInParent="true">
-
+        android:layout_marginTop="30dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_horizontal">
 
         <TextView
-            android:layout_width="200dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/txt_slogan"
-            android:textSize="25sp"
-            android:id="@+id/txtSlogan"
+            android:text="L I Q U O R  G L A S S "
+            android:textSize="30sp"
+            android:textAlignment="center"
             android:textColor="@android:color/white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="M E R C H A N T"
+            android:textSize="32sp"
+            android:layout_marginTop="14dp"
+            android:textAlignment="center"
+            android:textColor="@android:color/white"/>
+
     </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:weightSum="2"
+        android:layout_margin="13dp"
         android:orientation="horizontal">
 
-
-        <info.hoang8f.widget.FButton
-            android:layout_width="match_parent"
+        <Button
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="2"
             android:id="@+id/btn_signIn"
-            android:text="@string/btn_login"
-            android:textColor="@android:color/white"
-            app:buttonColor="@color/btn_login"
-            app:shadowColor="@android:color/black"
-            app:shadowEnabled="true"
-            app:shadowHeight="5dp"
-            app:cornerRadius="4dp"
-            android:layout_margin="8dp"
+            android:background="@drawable/btn_sign_in_background"
+            android:textColor="@color/colorAccent"
+            android:text="SIGN IN"
+            android:layout_marginRight="6dp"
             />
+
+
 
 
 
