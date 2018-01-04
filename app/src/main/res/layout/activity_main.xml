@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="L I Q U O R  G L A S S "
+            android:text="@string/l_i_q_u_o_r_g_l_a_s_s"
             android:textSize="30sp"
             android:textAlignment="center"
             android:textColor="@android:color/white"/>
@@ -27,7 +27,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="M E R C H A N T"
+            android:text="@string/m_e_r_c_h_a_n_t"
             android:textSize="32sp"
             android:layout_marginTop="14dp"
             android:textAlignment="center"
@@ -51,8 +51,8 @@
             android:id="@+id/btn_signIn"
             android:background="@drawable/btn_sign_in_background"
             android:textColor="@color/colorAccent"
-            android:text="SIGN IN"
-            android:layout_marginRight="6dp"
+            android:text="@string/main_sign_in"
+            android:layout_marginEnd="6dp"
             />
 
 

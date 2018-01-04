@@ -13,5 +13,22 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="drawer_your_account">Your Account</string>
+    <string name="drawer_help">Help</string>
+    <string name="drawer_sign_out">Sign out</string>
+    <string name="drawer_orders">Orders</string>
+    <string name="l_i_q_u_o_r_g_l_a_s_s">L I Q U O R  G L A S S</string>
+    <string name="m_e_r_c_h_a_n_t">M E R C H A N T</string>
+    <string name="main_sign_in">SIGN IN</string>
+    <string name="activityDetails_details">Details</string>
+    <string name="user_first_name">First Name:</string>
+    <string name="user_last_name">Last Name:</string>
+    <string name="user_phone_number">Phone Number:</string>
+    <string name="user_email_address">Email Address:</string>
+    <string name="user_password">Password:</string>
+    <string name="user_save">SAVE</string>
+    <string name="user_cancel">CANCEL</string>
+    <string name="liquor_glass_merchant">LIQUOR GLASS MERCHANT</string>
+    <string name="login_remember_me">Remember Me</string>
 
 </resources>

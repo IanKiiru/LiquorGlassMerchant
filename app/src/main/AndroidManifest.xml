@@ -14,7 +14,10 @@
         android:roundIcon="@mipmap/ic_liquorcoltour"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name=".onAppKilled" android:stopWithTask="false"/>
+        <service
+            android:name=".onAppKilled"
+            android:stopWithTask="false" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,20 +35,21 @@
             android:label="@string/title_activity_home"
             android:theme="@style/AppTheme" />
         <activity android:name=".UserProfile" />
-        <activity android:name=".Orders"></activity>
+        <activity android:name=".Orders" />
 
         <service android:name=".Service.MyFirebaseIdService">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
-
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
         <service android:name=".Service.MyFirebaseMessaging">
             <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
-
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <activity android:name=".OrderDetails" />
+        <activity android:name=".CustomerRequest"></activity>
     </application>
 
 </manifest>

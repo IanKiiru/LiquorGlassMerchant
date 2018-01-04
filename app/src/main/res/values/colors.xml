@@ -8,6 +8,7 @@
     <color name="btnSignIn">#1fbad6</color>
 
     <color name="overlayBackground">#7f333639</color>
+    <color name="requestBackground">#EF9A9A</color>
     <color name="hint_editTextColor">#424242</color>
     <color name="overlayActionBar">#0e0d0e</color>
 

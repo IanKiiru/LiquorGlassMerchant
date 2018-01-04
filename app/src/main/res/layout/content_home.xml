@@ -75,52 +75,66 @@
         app:cardElevation="10dp"
         android:id="@+id/bottomCardView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="50dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:weightSum="10"
-            android:layout_margin="10dp">
+            android:weightSum="10">
 
-            <android.support.v7.widget.SwitchCompat
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_weight="2"
-                android:layout_height="wrap_content"
-                android:scaleX="1.3"
-                android:scaleY="1.3"
-                android:textColor="@android:color/white"
-                android:padding="6dp"
-                style="@style/SwitchCompatStyle"
-                android:id="@+id/online_switch" />
-
-
-
-            <RelativeLayout
-                android:layout_width="0dp"
-                android:layout_weight="8"
-                android:layout_height="wrap_content">
-
-                <ImageView
-                    android:layout_width="wrap_content"
+                android:layout_weight="1.5"
+                android:orientation="horizontal"
+                android:layout_height="match_parent">
+                <android.support.v7.widget.SwitchCompat
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_expand_more_black_24dp"
-                    android:layout_alignParentRight="true"
-                    android:id="@+id/imgExpandable"/>
+                    style="@style/SwitchCompatStyle"
+                    android:id="@+id/online_switch" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_weight="7.5">
                 <TextView
-                    android:layout_below="@+id/imgExpandable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="LIQUOR GLASS MERCHANT"
-                    android:layout_centerInParent="true"
+                    android:layout_marginTop="17dp"
+                    android:text="@string/liquor_glass_merchant"
+                    android:layout_gravity="center_horizontal"
                     android:textColor="@color/colorAccent"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:id="@+id/btnFindUser"/>
 
 
+            </LinearLayout>
 
-            </RelativeLayout>
+
+
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:src="@drawable/ic_expand_more_black_24dp"
+                    android:layout_alignParentEnd="true"
+                    android:id="@+id/imgExpandable"/>
+            </LinearLayout>
+
+
+
+
+
 
 
 

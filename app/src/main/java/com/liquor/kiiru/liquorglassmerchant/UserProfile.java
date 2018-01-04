@@ -2,6 +2,7 @@ package com.liquor.kiiru.liquorglassmerchant;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -34,6 +35,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+
 public class UserProfile extends AppCompatActivity {
 
     private EditText firstNameField, lastNameField, emailField, passwordField, phoneField;
@@ -55,8 +59,18 @@ public class UserProfile extends AppCompatActivity {
     FirebaseAuth auth;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
+                .setDefaultFontPath("fonts/Arkhip_font.ttf")
+                .setFontAttrId(R.attr.fontPath)
+                .build());
         setContentView(R.layout.activity_user_profile);
 
         firstNameField = (EditText) findViewById(R.id.profileFirstName);

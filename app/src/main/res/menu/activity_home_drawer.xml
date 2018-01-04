@@ -5,19 +5,19 @@
         <item
             android:id="@+id/nav_orders"
             android:icon="@drawable/ic_access_time_black_24dp"
-            android:title="Orders" />
+            android:title="@string/drawer_orders" />
         <item
             android:id="@+id/nav_account"
             android:icon="@drawable/ic_person_black_24dp"
-            android:title="Your Account" />
+            android:title="@string/drawer_your_account" />
         <item
             android:id="@+id/nav_help"
             android:icon="@drawable/ic_help_black_24dp"
-            android:title="Help" />
+            android:title="@string/drawer_help" />
         <item
             android:id="@+id/nav_logout"
             android:icon="@drawable/ic_exit_to_app_black_24dp"
-            android:title="Sign out" />
+            android:title="@string/drawer_sign_out" />
     </group>
 
     <item android:title="Communicate">

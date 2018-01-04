@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import com.liquor.kiiru.liquorglassmerchant.Model.Order;
 import com.liquor.kiiru.liquorglassmerchant.Model.Request;
 import com.liquor.kiiru.liquorglassmerchant.Model.User;
 import com.liquor.kiiru.liquorglassmerchant.Remote.APIService;
@@ -15,10 +16,13 @@ import com.liquor.kiiru.liquorglassmerchant.Remote.RetrofitClient;
 
 public class Common {
     public static User currentUser;
+    public static Request currentRequest;
+    public static String orderKey;
 
 
     public static final String DELETE = "Delete";
     public static final String UPDATE = "Update";
+    public static final String DETAILS = "Order Details";
 
     public static final String USER_KEY = "User";
     public static final String PWD_KEY = "Password";

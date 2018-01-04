@@ -1,6 +1,7 @@
 package com.liquor.kiiru.liquorglassmerchant;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -71,7 +72,8 @@ import java.util.List;
 import java.util.Map;
 
 import io.paperdb.Paper;
-
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 
 public class Home extends AppCompatActivity
@@ -100,6 +102,12 @@ public class Home extends AppCompatActivity
 
     FirebaseAuth mAuth;
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -115,8 +123,6 @@ public class Home extends AppCompatActivity
                     {
                         buildGoogleApiClient();
                         createLocationRequest();
-                        if (userSwitch.isChecked())
-                        connectMerchant();
                     }
                 }
             }
@@ -128,6 +134,10 @@ public class Home extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
+                .setDefaultFontPath("fonts/Arkhip_font.ttf")
+                .setFontAttrId(R.attr.fontPath)
+                .build());
         setContentView(R.layout.activity_home);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Home Merchant");
@@ -152,14 +162,14 @@ public class Home extends AppCompatActivity
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     startLocationUpdates();
-                    connectMerchant();
-                    getAssignedCustomer();
                     Snackbar.make(mapFragment.getView(), "You are online", Snackbar.LENGTH_SHORT).show();
 
                 }
                 else if (!isChecked){
                     disconnectMerchant();
-                    userMarker.remove();
+                    if (userMarker!=null) {
+                        userMarker.remove();
+                    }
                     Snackbar.make(mapFragment.getView(), "You are offline", Snackbar.LENGTH_SHORT).show();
                 }
             }
@@ -200,6 +210,8 @@ public class Home extends AppCompatActivity
 
         setUpLocation();
         updateToken(FirebaseInstanceId.getInstance().getToken());
+        getAssignedCustomer();
+
     }
 
 
@@ -214,7 +226,7 @@ public class Home extends AppCompatActivity
 
     private void getAssignedCustomer(){
         String merchantId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest").child("customerOrderId");
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("MerchantFound").child(merchantId).child("customerRequest").child("customerOrderId");
         assignedCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -243,7 +255,7 @@ public class Home extends AppCompatActivity
     private void endRide() {
         erasePolylines();
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference merchantRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(userId).child("customerRequest");
+        DatabaseReference merchantRef = FirebaseDatabase.getInstance().getReference().child("Users").child("MerchantFound").child(userId).child("customerRequest");
         merchantRef.removeValue();
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("customerRequest").child(customerId);
@@ -263,7 +275,7 @@ public class Home extends AppCompatActivity
 
     private void getAssignedCustomerDestination() {
         String merchantId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("Merchants").child(merchantId).child("customerRequest");
+        DatabaseReference assignedCustomerRef = FirebaseDatabase.getInstance().getReference().child("Users").child("MerchantFound").child(merchantId).child("customerRequest");
         assignedCustomerRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -467,8 +479,6 @@ public class Home extends AppCompatActivity
             {
                 buildGoogleApiClient();
                 createLocationRequest();
-                if (userSwitch.isChecked())
-                    connectMerchant();
 
             }
         }
@@ -493,8 +503,11 @@ public class Home extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        connectMerchant();
-        startLocationUpdates();
+        if (userSwitch.isChecked()){
+            startLocationUpdates();
+
+        }
+
 
     }
 
@@ -507,65 +520,7 @@ public class Home extends AppCompatActivity
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
-    private void connectMerchant() {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (lastLocation != null) {
-            if (userSwitch.isChecked()) {
-                final double latitude = lastLocation.getLatitude();
-                final double longitude = lastLocation.getLongitude();
 
-                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
-                DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
-                GeoFire geoFireAvailable = new GeoFire(refAvailable);
-                GeoFire geoFireWorking = new GeoFire(refWorking);
-
-                switch (customerId) {
-                    case "":
-                        geoFireWorking.removeLocation(userId);
-                        geoFireAvailable.setLocation(userId, new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
-                            @Override
-                            public void onComplete(String key, DatabaseError error) {
-                                if (userMarker != null)
-                                    userMarker.remove();
-                                userMarker = mMap.addMarker(new MarkerOptions()
-                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant))
-                                        .position(new LatLng(latitude, longitude))
-                                        .title("Your Location"));
-
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
-
-                            }
-                        });
-                        break;
-
-                    default:
-                        geoFireAvailable.removeLocation(userId);
-                        geoFireWorking.setLocation(userId, new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
-                            @Override
-                            public void onComplete(String key, DatabaseError error) {
-                                if (userMarker != null)
-                                    userMarker.remove();
-                                userMarker = mMap.addMarker(new MarkerOptions()
-                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant))
-                                        .position(new LatLng(latitude, longitude))
-                                        .title("Your Location"));
-
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
-
-                            }
-                        });
-                        break;
-                }
-
-
-            }
-        }
-    }
 
 
     private void disconnectMerchant(){
@@ -596,7 +551,52 @@ public class Home extends AppCompatActivity
     public void onLocationChanged(Location location) {
         if(getApplicationContext()!=null) {
             lastLocation=location;
-            connectMerchant();
+            final double latitude = location.getLatitude();
+            final double longitude = location.getLongitude();
+
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("merchantsAvailable");
+            DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("merchantsWorking");
+            GeoFire geoFireAvailable = new GeoFire(refAvailable);
+            GeoFire geoFireWorking = new GeoFire(refWorking);
+
+            switch (customerId) {
+                case "":
+                    geoFireWorking.removeLocation(userId);
+                    geoFireAvailable.setLocation(userId, new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+                        @Override
+                        public void onComplete(String key, DatabaseError error) {
+                            if (userMarker != null)
+                                userMarker.remove();
+                            userMarker = mMap.addMarker(new MarkerOptions()
+                                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant))
+                                    .position(new LatLng(latitude, longitude))
+                                    .title("Your Location"));
+
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
+
+                        }
+                    });
+                    break;
+
+                default:
+                    geoFireAvailable.removeLocation(userId);
+                    geoFireWorking.setLocation(userId, new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
+                        @Override
+                        public void onComplete(String key, DatabaseError error) {
+                            if (userMarker != null)
+                                userMarker.remove();
+                            userMarker = mMap.addMarker(new MarkerOptions()
+                                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_merchant))
+                                    .position(new LatLng(latitude, longitude))
+                                    .title("Your Location"));
+
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
+
+                        }
+                    });
+                    break;
+            }
         }
         }
 

@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:textColor="@color/colorPrimaryDark"
-            android:text="First Name:"
+            android:text="@string/user_first_name"
             android:textSize="18sp"/>
 
         <EditText
@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:textColor="@color/colorPrimaryDark"
-            android:text="Last Name:"
+            android:text="@string/user_last_name"
             android:textSize="18sp"/>
         <EditText
             android:id="@+id/profileLastName"
@@ -78,7 +78,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Phone Number:"
+            android:text="@string/user_phone_number"
             android:textStyle="bold"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"/>
@@ -91,11 +91,11 @@
             android:textStyle="italic"
             android:textColor="@color/profileDetails"
             android:layout_marginBottom="20sp"
-            android:inputType="number"/>
+            android:inputType="phone"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Email Address:"
+            android:text="@string/user_email_address"
             android:textStyle="bold"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"/>
@@ -112,7 +112,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Password:"
+            android:text="@string/user_password"
             android:textStyle="bold"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"/>
@@ -150,8 +150,8 @@
             android:id="@+id/profileSave"
             android:background="@drawable/btn_sign_in_background"
             android:textColor="@color/colorAccent"
-            android:text="SAVE"
-            android:layout_marginRight="6dp"
+            android:text="@string/user_save"
+            android:layout_marginEnd="6dp"
             />
         <Button
             android:layout_width="0dp"
@@ -160,8 +160,8 @@
             android:id="@+id/profileBack"
             android:background="@drawable/back_btn_background"
             android:textColor="@color/colorAccent"
-            android:text="CANCEL"
-            android:layout_marginRight="6dp"
+            android:text="@string/user_cancel"
+            android:layout_marginEnd="6dp"
             />
     </LinearLayout>
 
